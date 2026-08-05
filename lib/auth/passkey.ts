@@ -1,4 +1,4 @@
-import { startAuthentication, startRegistration } from "@simplewebauthn/browser";
+import { startAuthentication } from "@simplewebauthn/browser";
 
 export function isPasskeySupported(): boolean {
   if (typeof window === "undefined") return false;
@@ -26,11 +26,15 @@ export async function loginWithPasskey(): Promise<{
       method: "POST",
     });
 
-    if (!optionsRes.ok) {
-      throw new Error("Không thể khởi tạo tùy chọn xác thực Passkey từ máy chủ.");
-    }
-
     const options = await optionsRes.json();
+
+    if (!optionsRes.ok || !options || !options.challenge) {
+      throw new Error(
+        options?.error ||
+        options?.message ||
+        "Không tìm thấy thông tin tùy chọn Passkey. Vui lòng đảm bảo bạn đã đăng ký Passkey trong Cài đặt."
+      );
+    }
 
     // 2. Trigger browser platform authenticator via SimpleWebAuthn
     const asseResp = await startAuthentication({ optionsJSON: options });
@@ -59,6 +63,12 @@ export async function loginWithPasskey(): Promise<{
       return {
         success: false,
         message: "Bạn đã hủy thao tác xác thực Passkey trên thiết bị.",
+      };
+    }
+    if (err.message && err.message.includes("replace")) {
+      return {
+        success: false,
+        message: "Chưa tìm thấy Passkey đã đăng ký cho tài khoản trên thiết bị này. Vui lòng đăng nhập bằng Email/Google và tạo Passkey trong mục Cài đặt.",
       };
     }
     return {
