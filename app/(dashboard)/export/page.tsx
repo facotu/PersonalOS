@@ -1,0 +1,6 @@
+import * as React from "react";
+import { ExportCenter } from "@/components/export/export-center";
+
+export default function ExportPage() {
+  return <ExportCenter />;
+}
