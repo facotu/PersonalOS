@@ -9,11 +9,8 @@ import {
   Pin,
   Sparkles,
   Trash2,
-  FolderKanban,
-  CheckSquare,
 } from "lucide-react";
 
-import { NoteItem } from "@/lib/notes/types";
 import { fetchNoteById, updateNoteAction, togglePinNoteAction, deleteNoteAction } from "@/lib/notes/actions";
 import { fetchProjectsOptions } from "@/lib/tasks/actions";
 import { Button } from "@/components/ui/button";

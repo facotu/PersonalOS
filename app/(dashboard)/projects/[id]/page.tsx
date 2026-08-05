@@ -8,15 +8,11 @@ import {
   ArrowLeft,
   Calendar,
   CheckSquare,
-  Clock,
   Edit3,
-  FolderKanban,
   LayoutDashboard,
   ListTodo,
   Plus,
   Trash2,
-  AlertCircle,
-  CheckCircle2,
 } from "lucide-react";
 
 import { ProjectItem } from "@/lib/projects/types";
