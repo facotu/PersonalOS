@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { DashboardData, DeadlineItem, CalendarPreviewItem, DashboardProjectHealthItem } from "@/lib/dashboard/types";
 import { calculateProjectHealth } from "@/lib/projects/actions";
-import { fetchCalendarItems } from "@/lib/calendar/actions";
+import { fetchUnifiedCalendarItems } from "@/lib/calendar/actions";
 
 export async function getDashboardData(): Promise<DashboardData> {
   const supabase = createClient();
@@ -57,7 +57,7 @@ export async function getDashboardData(): Promise<DashboardData> {
   const start7DaysAgo = new Date(now.getTime() - 7 * 86400000);
   const end7DaysAhead = new Date(now.getTime() + 7 * 86400000);
 
-  const calendarItems = await fetchCalendarItems(
+  const calendarItems = await fetchUnifiedCalendarItems(
     start7DaysAgo.toISOString(),
     end7DaysAhead.toISOString()
   );

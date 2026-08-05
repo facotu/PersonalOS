@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { ExportService } from "@/lib/export/service";
 import { ExportResource, ExportFormat } from "@/lib/export/types";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);

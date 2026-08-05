@@ -8,7 +8,7 @@ export const startTimerSchema = z.object({
   hourly_rate: z.number().min(0).optional().nullable(),
 });
 
-export const manualTimeEntrySchema = z.object({
+export const manualTimeEntryObjectSchema = z.object({
   task_id: z.string().uuid().optional().nullable(),
   project_id: z.string().uuid().optional().nullable(),
   description: z.string().optional().nullable(),
@@ -16,7 +16,9 @@ export const manualTimeEntrySchema = z.object({
   ended_at: z.string().min(1, "Thời gian kết thúc không được để trống."),
   is_billable: z.boolean().default(false),
   hourly_rate: z.number().min(0).optional().nullable(),
-}).refine(
+});
+
+export const manualTimeEntrySchema = manualTimeEntryObjectSchema.refine(
   (data) => new Date(data.ended_at) > new Date(data.started_at),
   {
     message: "Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.",
@@ -24,7 +26,7 @@ export const manualTimeEntrySchema = z.object({
   }
 );
 
-export const updateTimeEntrySchema = manualTimeEntrySchema.partial();
+export const updateTimeEntrySchema = manualTimeEntryObjectSchema.partial();
 
 export type StartTimerInput = z.infer<typeof startTimerSchema>;
 export type ManualTimeEntryInput = z.infer<typeof manualTimeEntrySchema>;

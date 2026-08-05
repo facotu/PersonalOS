@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const createEventSchema = z.object({
+export const createEventObjectSchema = z.object({
   title: z
     .string()
     .min(1, "Tên sự kiện không được để trống.")
@@ -13,7 +13,9 @@ export const createEventSchema = z.object({
   event_type: z.enum(["Task", "Meeting", "Personal", "Reminder"]).default("Meeting"),
   project_id: z.string().uuid().optional().nullable(),
   task_id: z.string().uuid().optional().nullable(),
-}).refine(
+});
+
+export const createEventSchema = createEventObjectSchema.refine(
   (data) => new Date(data.end_time) >= new Date(data.start_time),
   {
     message: "Thời gian kết thúc phải lớn hơn hoặc bằng thời gian bắt đầu.",
@@ -21,7 +23,7 @@ export const createEventSchema = z.object({
   }
 );
 
-export const updateEventSchema = createEventSchema.partial();
+export const updateEventSchema = createEventObjectSchema.partial();
 
 export type CreateEventInput = z.infer<typeof createEventSchema>;
 export type UpdateEventInput = z.infer<typeof updateEventSchema>;

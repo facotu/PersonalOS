@@ -6,7 +6,7 @@ import { CreateProjectInput, UpdateProjectInput } from "@/lib/projects/schemas";
  * Health assessment helper logic (Rule-based)
  */
 
-function calculateProjectHealth(
+export function calculateProjectHealth(
   status: string,
   deadline: string | null,
   progressPct: number,
