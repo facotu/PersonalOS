@@ -305,7 +305,7 @@ export default function TimeTrackingPage() {
             />
           ))}
         </div>
-      ) : null}
+      )}
 
       {/* Manual Entry Dialog */}
       <ManualEntryDialog
