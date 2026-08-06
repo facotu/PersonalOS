@@ -321,9 +321,6 @@ export function TaskFormSheet({
             </div>
           </div>
 
-            </div>
-          </div>
-
           {/* Tags Section */}
           <div className="space-y-2 pt-2 border-t">
             <div className="flex items-center justify-between">
