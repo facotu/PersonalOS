@@ -147,13 +147,25 @@ export function TaskDetailSheet({
 
             {/* Tags */}
             {task.tags && task.tags.length > 0 && (
-              <div className="flex items-center justify-between p-2.5 rounded-lg border bg-card">
-                <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
+              <div className="flex items-center justify-between p-2.5 rounded-lg border bg-card gap-4">
+                <span className="text-muted-foreground flex items-center gap-1.5 text-xs shrink-0">
                   <TagIcon className="h-4 w-4" /> Thẻ (Tags)
                 </span>
-                <span className="font-medium text-foreground">
-                  {task.tags.map((t) => `#${t.name}`).join(", ")}
-                </span>
+                <div className="flex flex-wrap gap-1 justify-end">
+                  {task.tags.map((t) => (
+                    <span
+                      key={t.id}
+                      className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold border"
+                      style={{
+                        borderColor: `${t.color || "#64748b"}40`,
+                        backgroundColor: `${t.color || "#64748b"}15`,
+                        color: t.color || "#ffffff",
+                      }}
+                    >
+                      {t.name}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
           </div>

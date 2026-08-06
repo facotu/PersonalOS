@@ -62,6 +62,19 @@ export async function fetchTasks(filters: TaskFilterOptions = {}): Promise<TaskI
     query = query.eq("project_id", filters.project_id);
   }
 
+  // Tag Filter
+  if (filters.tag_id) {
+    const { data: ttData } = await supabase
+      .from("task_tags")
+      .select("task_id")
+      .eq("tag_id", filters.tag_id);
+    const taskIds = (ttData || []).map((x) => x.task_id);
+    if (taskIds.length === 0) {
+      return [];
+    }
+    query = query.in("id", taskIds);
+  }
+
   // Sorting
   const sortField = filters.sortBy || "priority";
   const ascending = filters.sortOrder === "asc";
@@ -209,4 +222,47 @@ export async function fetchTagsOptions() {
     .order("name");
 
   return data || [];
+}
+
+export async function createTagAction(name: string, color: string) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Bạn chưa đăng nhập.");
+
+  const { data, error } = await supabase
+    .from("tags")
+    .insert({
+      user_id: user.id,
+      name: name.trim(),
+      color,
+    })
+    .select("id, name, color")
+    .single();
+
+  if (error) {
+    console.error("Error creating tag:", error);
+    if (error.code === "23505") {
+      throw new Error("Tên nhãn dán này đã tồn tại.");
+    }
+    throw new Error("Không thể tạo nhãn dán mới.");
+  }
+
+  return data;
+}
+
+export async function deleteTagAction(id: string) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Bạn chưa đăng nhập.");
+
+  const { error } = await supabase
+    .from("tags")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("Error deleting tag:", error);
+    throw new Error("Không thể xóa nhãn dán.");
+  }
 }

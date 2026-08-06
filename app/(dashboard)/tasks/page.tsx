@@ -62,7 +62,20 @@ export default function TasksPage() {
         "postgres_changes",
         { event: "*", schema: "public", table: "tasks" },
         () => {
-          // Invalidate cache to refetch latest state without duplicating
+          queryClient.invalidateQueries({ queryKey: ["tasks"] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "task_tags" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["tasks"] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tags" },
+        () => {
           queryClient.invalidateQueries({ queryKey: ["tasks"] });
         }
       )

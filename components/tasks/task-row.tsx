@@ -109,10 +109,21 @@ export function TaskRow({
 
             {/* Tags */}
             {task.tags && task.tags.length > 0 && (
-              <span className="flex items-center gap-1">
-                <TagIcon className="h-3 w-3" />
-                {task.tags.map((t) => `#${t.name}`).join(" ")}
-              </span>
+              <div className="flex items-center gap-1 flex-wrap">
+                {task.tags.map((t) => (
+                  <span
+                    key={t.id}
+                    className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold border"
+                    style={{
+                      borderColor: `${t.color || "#64748b"}40`,
+                      backgroundColor: `${t.color || "#64748b"}15`,
+                      color: t.color || "#ffffff",
+                    }}
+                  >
+                    {t.name}
+                  </span>
+                ))}
+              </div>
             )}
 
             {/* Due Date Indicator */}

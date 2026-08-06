@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Loader2, Plus, Edit3 } from "lucide-react";
+import { Loader2, Plus, Edit3, Tag, X, Trash2 } from "lucide-react";
 
 import { TaskItem, TaskPriority, TaskStatus, EnergyLevel } from "@/lib/tasks/types";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -36,8 +36,14 @@ export function TaskFormSheet({
   const [selectedTagIds, setSelectedTagIds] = React.useState<string[]>([]);
 
   const [projects, setProjects] = React.useState<Array<{ id: string; name: string }>>([]);
-  const [tags, setTags] = React.useState<Array<{ id: string; name: string }>>([]);
+  const [tags, setTags] = React.useState<Array<{ id: string; name: string; color: string | null }>>([]);
   const [loading, setLoading] = React.useState(false);
+
+  // New Tag Form States
+  const [showNewTagForm, setShowNewTagForm] = React.useState(false);
+  const [newTagName, setNewTagName] = React.useState("");
+  const [newTagColor, setNewTagColor] = React.useState("#3b82f6");
+  const [tagCreating, setTagCreating] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -66,9 +72,56 @@ export function TaskFormSheet({
         setEstimatedHours(0);
         setEnergyLevel("MEDIUM");
         setSelectedTagIds([]);
+        setShowNewTagForm(false);
+        setNewTagName("");
       }
     }
   }, [open, taskToEdit]);
+
+  const handleCreateTag = async () => {
+    if (!newTagName.trim()) return;
+    setTagCreating(true);
+    try {
+      const newTag = await createTagAction(newTagName, newTagColor);
+      setTags((prev) => [...prev, newTag]);
+      setSelectedTagIds((prev) => [...prev, newTag.id]);
+      setNewTagName("");
+      setShowNewTagForm(false);
+      toast({ title: "Đã tạo nhãn dán mới!" });
+    } catch (err: any) {
+      toast({
+        variant: "destructive",
+        title: "Không thể tạo nhãn dán",
+        description: err.message || "Tên nhãn đã tồn tại hoặc không hợp lệ.",
+      });
+    } finally {
+      setTagCreating(false);
+    }
+  };
+
+  const handleDeleteTag = async (tagId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!confirm("Bạn có chắc chắn muốn xóa nhãn dán này vĩnh viễn?")) return;
+    try {
+      await deleteTagAction(tagId);
+      setTags((prev) => prev.filter((t) => t.id !== tagId));
+      setSelectedTagIds((prev) => prev.filter((id) => id !== tagId));
+      toast({ title: "Đã xóa nhãn dán." });
+    } catch (err: any) {
+      toast({
+        variant: "destructive",
+        title: "Lỗi",
+        description: err.message || "Không thể xóa nhãn dán.",
+      });
+    }
+  };
+
+  const handleToggleTag = (tagId: string) => {
+    setSelectedTagIds((prev) =>
+      prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -265,6 +318,99 @@ export function TaskFormSheet({
                 <option value="MEDIUM">Medium (Vừa phải)</option>
                 <option value="LOW">Low (Thấp)</option>
               </select>
+            </div>
+          </div>
+
+            </div>
+          </div>
+
+          {/* Tags Section */}
+          <div className="space-y-2 pt-2 border-t">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <Tag className="h-3.5 w-3.5 text-primary" /> Nhãn dán công việc (Tags)
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowNewTagForm(!showNewTagForm)}
+                className="text-[11px] font-bold text-primary hover:underline"
+              >
+                {showNewTagForm ? "Hủy" : "+ Thêm nhãn mới"}
+              </button>
+            </div>
+
+            {/* Create Tag Form */}
+            {showNewTagForm && (
+              <div className="p-3 rounded-lg border bg-accent/20 space-y-3 animate-in slide-in-from-top-2 duration-150">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Tên nhãn..."
+                    value={newTagName}
+                    onChange={(e) => setNewTagName(e.target.value)}
+                    className="flex-1 h-8 rounded border border-input bg-background px-2 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleCreateTag}
+                    disabled={tagCreating}
+                    className="h-8 text-xs px-3"
+                  >
+                    {tagCreating ? "Đang tạo..." : "Tạo"}
+                  </Button>
+                </div>
+                {/* Color Selector */}
+                <div className="flex flex-wrap gap-1.5">
+                  {["#ef4444", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6", "#ec4899", "#64748b"].map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setNewTagColor(c)}
+                      className={`h-5 w-5 rounded-full border transition-all ${
+                        newTagColor === c ? "ring-2 ring-primary scale-110" : "opacity-80"
+                      }`}
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tags Grid Select */}
+            <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
+              {tags.map((t) => {
+                const isSelected = selectedTagIds.includes(t.id);
+                return (
+                  <div
+                    key={t.id}
+                    onClick={() => handleToggleTag(t.id)}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold cursor-pointer select-none transition-all ${
+                      isSelected
+                        ? "shadow-sm border-primary/50 text-white"
+                        : "border-border/60 text-muted-foreground bg-accent/10 hover:bg-accent/30"
+                    }`}
+                    style={{ backgroundColor: isSelected ? `${t.color || "#64748b"}25` : undefined }}
+                  >
+                    <span
+                      className="h-2 w-2 rounded-full shrink-0"
+                      style={{ backgroundColor: t.color || "#64748b" }}
+                    />
+                    <span style={{ color: isSelected ? t.color || "#ffffff" : undefined }}>{t.name}</span>
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeleteTag(t.id, e)}
+                      className="text-muted-foreground hover:text-destructive shrink-0 ml-0.5 rounded-full p-0.5 hover:bg-accent/50"
+                      title="Xóa nhãn"
+                    >
+                      <X className="h-2.5 w-2.5" />
+                    </button>
+                  </div>
+                );
+              })}
+              {tags.length === 0 && (
+                <p className="text-[11px] text-muted-foreground italic">Chưa có nhãn dán nào. Hãy tạo nhãn mới!</p>
+              )}
             </div>
           </div>
 
