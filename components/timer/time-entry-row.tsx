@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Clock, FolderKanban, CheckSquare, DollarSign, Edit3, Trash2 } from "lucide-react";
+import { Clock, FolderKanban, CheckSquare, DollarSign, Edit3, Trash2, Star } from "lucide-react";
 
 import { TimeEntryItem } from "@/lib/time/types";
 import { Button } from "@/components/ui/button";
@@ -69,6 +69,21 @@ export function TimeEntryRow({ entry, onEdit, onDelete }: TimeEntryRowProps) {
           {entry.is_billable && (
             <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/15 text-emerald-400 border-emerald-500/30">
               <DollarSign className="h-3 w-3" /> Billable
+            </span>
+          )}
+
+          {entry.focus_score !== null && entry.focus_score !== undefined && (
+            <span
+              className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[10px] font-semibold border ${
+                entry.focus_score >= 8
+                  ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                  : entry.focus_score >= 5
+                  ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
+                  : "bg-red-500/15 text-red-400 border-red-500/30"
+              }`}
+              title={`Điểm tập trung: ${entry.focus_score}/10`}
+            >
+              <Star className="h-3 w-3" /> {entry.focus_score}/10
             </span>
           )}
         </div>

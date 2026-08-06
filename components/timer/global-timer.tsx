@@ -1,12 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { Play, Pause, Square, Clock, Loader2, AlertCircle } from "lucide-react";
+import { Play, Pause, Square, Clock, Loader2, Star } from "lucide-react";
 
 import { useTimerStore } from "@/lib/time/timer-store";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { StartTimerDialog } from "@/components/timer/start-timer-dialog";
+import { StopTimerDialog } from "@/components/timer/stop-timer-dialog";
 import { cn } from "@/lib/utils";
 
 /**
@@ -37,6 +38,7 @@ export function GlobalTimer() {
   } = useTimerStore();
 
   const [startDialogOpen, setStartDialogOpen] = React.useState(false);
+  const [stopDialogOpen, setStopDialogOpen] = React.useState(false);
   const [actionLoading, setActionLoading] = React.useState(false);
 
   // Initialize timer on mount & restore state
@@ -60,8 +62,9 @@ export function GlobalTimer() {
     try {
       await pauseTimer();
       toast({ title: "Đã tạm dừng đếm giờ" });
-    } catch (err: any) {
-      toast({ variant: "destructive", title: "Lỗi", description: err.message });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Không thể tạm dừng.";
+      toast({ variant: "destructive", title: "Lỗi", description: message });
     } finally {
       setActionLoading(false);
     }
@@ -72,23 +75,25 @@ export function GlobalTimer() {
     try {
       await resumeTimer();
       toast({ title: "Đã tiếp tục đếm giờ" });
-    } catch (err: any) {
-      toast({ variant: "destructive", title: "Lỗi", description: err.message });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Không thể tiếp tục.";
+      toast({ variant: "destructive", title: "Lỗi", description: message });
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleStop = async () => {
+  const handleStopWithScore = async (focusScore: number | null) => {
     setActionLoading(true);
     try {
-      const stopped = await stopTimer();
+      const stopped = await stopTimer(focusScore);
       toast({
         title: "Đã dừng và lưu thời gian!",
-        description: `Thời gian ghi nhận: ${formatHHMMSS(stopped.duration_seconds)}`,
+        description: `Thời gian ghi nhận: ${formatHHMMSS(stopped.duration_seconds)}${focusScore ? ` · Focus: ${focusScore}/10` : ""}`,
       });
-    } catch (err: any) {
-      toast({ variant: "destructive", title: "Lỗi", description: err.message });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Không thể dừng đồng hồ.";
+      toast({ variant: "destructive", title: "Lỗi", description: message });
     } finally {
       setActionLoading(false);
     }
@@ -108,78 +113,94 @@ export function GlobalTimer() {
     const isRunning = activeEntry.status === "running";
 
     return (
-      <div
-        className={cn(
-          "flex items-center space-x-2 px-3 py-1 rounded-xl border text-xs shadow-sm transition-all duration-200",
-          isRunning
-            ? "bg-sky-500/10 border-sky-500/40 ring-1 ring-sky-500/20"
-            : "bg-amber-500/10 border-amber-500/40"
-        )}
-      >
-        {/* Task / Project Context */}
-        <div className="flex items-center space-x-1.5 max-w-[200px] sm:max-w-[280px] truncate">
-          <div
-            className={cn(
-              "h-2 w-2 rounded-full shrink-0",
-              isRunning ? "bg-sky-400 animate-pulse" : "bg-amber-400"
-            )}
-          />
-          <span className="font-semibold text-foreground truncate">
-            {activeEntry.task?.title || activeEntry.description || "Công việc không tên"}
-          </span>
-          {activeEntry.project && (
-            <span className="text-[10px] text-muted-foreground font-medium truncate">
-              ({activeEntry.project.name})
+      <>
+        <div
+          className={cn(
+            "flex items-center space-x-2 px-3 py-1 rounded-xl border text-xs shadow-sm transition-all duration-200",
+            isRunning
+              ? "bg-sky-500/10 border-sky-500/40 ring-1 ring-sky-500/20"
+              : "bg-amber-500/10 border-amber-500/40"
+          )}
+        >
+          {/* Task / Project Context */}
+          <div className="flex items-center space-x-1.5 max-w-[200px] sm:max-w-[280px] truncate">
+            <div
+              className={cn(
+                "h-2 w-2 rounded-full shrink-0",
+                isRunning ? "bg-sky-400 animate-pulse" : "bg-amber-400"
+              )}
+            />
+            <span className="font-semibold text-foreground truncate">
+              {activeEntry.task?.title || activeEntry.description || "Công việc không tên"}
             </span>
-          )}
-        </div>
+            {activeEntry.project && (
+              <span className="text-[10px] text-muted-foreground font-medium truncate">
+                ({activeEntry.project.name})
+              </span>
+            )}
+          </div>
 
-        {/* Ticker HH:MM:SS */}
-        <span className="font-mono font-bold text-sm tracking-wider text-primary px-1.5">
-          {formatHHMMSS(elapsedSeconds)}
-        </span>
+          {/* Ticker HH:MM:SS */}
+          <span className="font-mono font-bold text-sm tracking-wider text-primary px-1.5">
+            {formatHHMMSS(elapsedSeconds)}
+          </span>
 
-        {/* Action Controls */}
-        <div className="flex items-center space-x-1">
-          {isRunning ? (
+          {/* Action Controls */}
+          <div className="flex items-center space-x-1">
+            {isRunning ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handlePause}
+                disabled={actionLoading}
+                className="h-7 w-7 text-amber-400 border-amber-500/30 hover:bg-amber-500/20"
+                title="Tạm dừng"
+              >
+                <Pause className="h-3.5 w-3.5" />
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleResume}
+                disabled={actionLoading}
+                className="h-7 w-7 text-sky-400 border-sky-500/30 hover:bg-sky-500/20"
+                title="Tiếp tục"
+              >
+                <Play className="h-3.5 w-3.5 fill-current" />
+              </Button>
+            )}
+
+            {/* Stop Button — mở StopTimerDialog để chấm điểm focus */}
             <Button
               type="button"
-              variant="outline"
+              variant="destructive"
               size="icon"
-              onClick={handlePause}
+              onClick={() => setStopDialogOpen(true)}
               disabled={actionLoading}
-              className="h-7 w-7 text-amber-400 border-amber-500/30 hover:bg-amber-500/20"
-              title="Tạm dừng"
+              className="h-7 w-7"
+              title="Dừng và đánh giá tập trung"
             >
-              <Pause className="h-3.5 w-3.5" />
+              {actionLoading ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Square className="h-3.5 w-3.5 fill-current" />
+              )}
             </Button>
-          ) : (
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={handleResume}
-              disabled={actionLoading}
-              className="h-7 w-7 text-sky-400 border-sky-500/30 hover:bg-sky-500/20"
-              title="Tiếp tục"
-            >
-              <Play className="h-3.5 w-3.5 fill-current" />
-            </Button>
-          )}
-
-          <Button
-            type="button"
-            variant="destructive"
-            size="icon"
-            onClick={handleStop}
-            disabled={actionLoading}
-            className="h-7 w-7"
-            title="Dừng và lưu"
-          >
-            <Square className="h-3.5 w-3.5 fill-current" />
-          </Button>
+          </div>
         </div>
-      </div>
+
+        {/* Stop Timer + Focus Score Dialog */}
+        <StopTimerDialog
+          open={stopDialogOpen}
+          elapsedSeconds={elapsedSeconds}
+          taskTitle={activeEntry.task?.title || activeEntry.description || "Công việc không tên"}
+          onOpenChange={setStopDialogOpen}
+          onConfirm={handleStopWithScore}
+        />
+      </>
     );
   }
 

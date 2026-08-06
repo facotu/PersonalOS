@@ -16,6 +16,7 @@ export const manualTimeEntryObjectSchema = z.object({
   ended_at: z.string().min(1, "Thời gian kết thúc không được để trống."),
   is_billable: z.boolean().default(false),
   hourly_rate: z.number().min(0).optional().nullable(),
+  focus_score: z.number().int().min(1).max(10).optional().nullable(),
 });
 
 export const manualTimeEntrySchema = manualTimeEntryObjectSchema.refine(

@@ -259,7 +259,7 @@ export async function resumeTimerAction(id: string): Promise<TimeEntryItem> {
   return data;
 }
 
-export async function stopTimerAction(id: string): Promise<TimeEntryItem> {
+export async function stopTimerAction(id: string, focus_score?: number | null): Promise<TimeEntryItem> {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -284,13 +284,23 @@ export async function stopTimerAction(id: string): Promise<TimeEntryItem> {
     finalDuration += elapsed;
   }
 
+  const updatePayload: Record<string, unknown> = {
+    status: "stopped",
+    ended_at: now.toISOString(),
+    duration_seconds: finalDuration,
+  };
+
+  // Persist focus_score only when explicitly provided (value 1-10)
+  if (focus_score !== undefined && focus_score !== null) {
+    const score = Math.round(focus_score);
+    if (score >= 1 && score <= 10) {
+      updatePayload.focus_score = score;
+    }
+  }
+
   const { data, error } = await supabase
     .from("time_entries")
-    .update({
-      status: "stopped",
-      ended_at: now.toISOString(),
-      duration_seconds: finalDuration,
-    })
+    .update(updatePayload)
     .eq("id", id)
     .eq("user_id", user.id)
     .select(`
@@ -365,6 +375,9 @@ export async function createManualTimeEntryAction(input: ManualTimeEntryInput): 
       status: "stopped",
       is_billable: input.is_billable || false,
       hourly_rate: input.hourly_rate || null,
+      focus_score: (input.focus_score !== undefined && input.focus_score !== null)
+        ? Math.min(10, Math.max(1, Math.round(input.focus_score)))
+        : null,
     })
     .select(`
       *,
@@ -390,7 +403,7 @@ export async function updateTimeEntryAction(
 
   if (!user) throw new Error("Bạn chưa đăng nhập.");
 
-  const patch: any = { ...input };
+  const patch: Record<string, unknown> = { ...input };
 
   if (input.started_at && input.ended_at) {
     const start = new Date(input.started_at);

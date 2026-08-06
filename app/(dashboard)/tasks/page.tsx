@@ -127,11 +127,12 @@ export default function TasksPage() {
       });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
-    onError: (err: any) => {
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : "Vui lòng thử lại sau.";
       toast({
         variant: "destructive",
         title: "Không thể xóa công việc",
-        description: err.message || "Vui lòng thử lại sau.",
+        description: message,
       });
     },
   });

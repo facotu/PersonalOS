@@ -78,11 +78,12 @@ export default function ExecutiveDashboardPage() {
       });
       toast({ title: "Đã tạo ghi chú mới!" });
       router.push(`/notes/${newNote.id}`);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Không rõ lỗi.";
       toast({
         variant: "destructive",
         title: "Không thể tạo ghi chú",
-        description: err.message,
+        description: message,
       });
     }
   };

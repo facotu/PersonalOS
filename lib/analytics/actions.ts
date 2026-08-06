@@ -441,3 +441,37 @@ export async function saveWeeklyReviewAction(payload: {
     throw new Error("Không thể lưu Tổng Kết Tuần.");
   }
 }
+
+/**
+ * Lấy danh sách tất cả Weekly Reviews của user, sắp xếp mới nhất trước
+ */
+export async function fetchAllWeeklyReviews(): Promise<WeeklyReviewRecord[]> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("weekly_reviews")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("year", { ascending: false })
+    .order("week_number", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching weekly reviews:", error);
+    throw new Error("Không thể tải danh sách Báo Cáo Tuần.");
+  }
+
+  return (data || []).map((r) => ({
+    id: r.id,
+    week_number: r.week_number,
+    year: r.year,
+    week_start: r.week_start,
+    week_end: r.week_end,
+    highlights: r.highlights || [],
+    challenges: r.at_risk_projects || [],
+    next_week_priorities: r.next_week_priorities || [],
+  }));
+}
+

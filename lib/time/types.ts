@@ -12,6 +12,8 @@ export interface TimeEntryItem {
   status: TimerStatus;
   is_billable: boolean;
   hourly_rate: number | null;
+  /** Điểm tập trung tự đánh giá khi kết thúc phiên làm việc (1=phân tán, 10=cực kỳ tập trung) */
+  focus_score: number | null;
   created_at: string;
   updated_at: string;
 

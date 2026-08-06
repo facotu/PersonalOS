@@ -25,7 +25,7 @@ interface TimerStoreState {
   }) => Promise<TimeEntryItem>;
   pauseTimer: () => Promise<void>;
   resumeTimer: () => Promise<void>;
-  stopTimer: () => Promise<TimeEntryItem>;
+  stopTimer: (focus_score?: number | null) => Promise<TimeEntryItem>;
   tick: () => void;
 }
 
@@ -78,11 +78,11 @@ export const useTimerStore = create<TimerStoreState>((set, get) => ({
     set({ activeEntry: updated, elapsedSeconds: updated.duration_seconds });
   },
 
-  stopTimer: async () => {
+  stopTimer: async (focus_score?: number | null) => {
     const active = get().activeEntry;
     if (!active) throw new Error("Không có đồng hồ nào đang chạy.");
 
-    const stopped = await stopTimerAction(active.id);
+    const stopped = await stopTimerAction(active.id, focus_score);
     set({ activeEntry: null, elapsedSeconds: 0 });
     return stopped;
   },

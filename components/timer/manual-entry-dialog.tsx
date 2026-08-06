@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Loader2, Plus, Edit3, Clock } from "lucide-react";
+import { Loader2, Plus, Edit3, Clock, Star } from "lucide-react";
 
 import { TimeEntryItem } from "@/lib/time/types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
@@ -34,6 +34,8 @@ export function ManualEntryDialog({
   const [endTime, setEndTime] = React.useState("");
   const [isBillable, setIsBillable] = React.useState(false);
   const [hourlyRate, setHourlyRate] = React.useState<number | "">("");
+  const [focusScore, setFocusScore] = React.useState<number | null>(null);
+  const [hoveredScore, setHoveredScore] = React.useState<number | null>(null);
 
   const [tasks, setTasks] = React.useState<TaskItem[]>([]);
   const [projects, setProjects] = React.useState<Array<{ id: string; name: string }>>([]);
@@ -52,6 +54,7 @@ export function ManualEntryDialog({
         setEndTime(entryToEdit.ended_at ? entryToEdit.ended_at.substring(0, 16) : "");
         setIsBillable(entryToEdit.is_billable);
         setHourlyRate(entryToEdit.hourly_rate || "");
+        setFocusScore(entryToEdit.focus_score ?? null);
       } else {
         const now = new Date();
         const start = new Date(now.getTime() - 60 * 60 * 1000);
@@ -62,6 +65,8 @@ export function ManualEntryDialog({
         setEndTime(now.toISOString().substring(0, 16));
         setIsBillable(false);
         setHourlyRate("");
+        setFocusScore(null);
+        setHoveredScore(null);
       }
     }
   }, [open, entryToEdit]);
@@ -77,6 +82,7 @@ export function ManualEntryDialog({
       ended_at: new Date(endTime).toISOString(),
       is_billable: isBillable,
       hourly_rate: hourlyRate !== "" ? Number(hourlyRate) : null,
+      focus_score: focusScore,
     };
 
     const validation = manualTimeEntrySchema.safeParse(payload);
@@ -106,11 +112,12 @@ export function ManualEntryDialog({
       }
       onOpenChange(false);
       onSuccess();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Vui lòng thử lại sau.";
       toast({
         variant: "destructive",
         title: isEditing ? "Không thể cập nhật" : "Không thể thêm thời gian",
-        description: err.message || "Vui lòng thử lại sau.",
+        description: message,
       });
     } finally {
       setLoading(false);
@@ -237,6 +244,42 @@ export function ManualEntryDialog({
                 />
               </div>
             )}
+          </div>
+
+          {/* Focus Score Rating */}
+          <div className="space-y-2 pt-1">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <Star className="h-3.5 w-3.5 text-amber-400" /> Độ tập trung (tùy chọn)
+              </label>
+              {(hoveredScore ?? focusScore) && (
+                <span className="text-xs font-semibold text-primary">
+                  {hoveredScore ?? focusScore}/10
+                </span>
+              )}
+            </div>
+            <div className="flex gap-1">
+              {Array.from({ length: 10 }, (_, i) => i + 1).map((score) => {
+                const displayScore = hoveredScore ?? focusScore;
+                const isActive = displayScore !== null && score <= displayScore;
+                return (
+                  <button
+                    key={score}
+                    type="button"
+                    onClick={() => setFocusScore(score === focusScore ? null : score)}
+                    onMouseEnter={() => setHoveredScore(score)}
+                    onMouseLeave={() => setHoveredScore(null)}
+                    className={`flex-1 h-7 rounded border text-[10px] font-bold transition-all ${
+                      isActive
+                        ? "bg-primary border-primary text-primary-foreground"
+                        : "border-border/50 text-muted-foreground hover:border-primary/50"
+                    }`}
+                  >
+                    {score}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="flex justify-end space-x-2 pt-4 border-t">
