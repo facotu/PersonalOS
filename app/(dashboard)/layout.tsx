@@ -34,11 +34,10 @@ export default function DashboardLayout({
     <div className="flex min-h-screen bg-background text-foreground">
       {/* Desktop Sidebar Navigation with hover-slide out capability when collapsed */}
       <Sidebar
+        isCollapsed={isSidebarCollapsed}
         className={cn(
-          "hidden md:flex md:fixed md:inset-y-0 md:left-0 md:w-64 md:z-30 md:transition-all md:duration-300 md:shrink-0",
-          isSidebarCollapsed
-            ? "md:transform md:-translate-x-[246px] md:hover:translate-x-0 md:shadow-2xl md:border-r md:border-primary/30"
-            : "md:translate-x-0"
+          "hidden md:flex md:fixed md:inset-y-0 md:left-0 md:z-30 md:transition-all md:duration-300 md:shrink-0",
+          isSidebarCollapsed ? "md:hover:shadow-2xl md:hover:border-r md:hover:border-primary/30" : ""
         )}
       />
 
@@ -46,7 +45,7 @@ export default function DashboardLayout({
       <div
         className={cn(
           "flex flex-col flex-1 transition-all duration-300",
-          isSidebarCollapsed ? "md:pl-4" : "md:pl-64"
+          isSidebarCollapsed ? "md:pl-16" : "md:pl-64"
         )}
       >
         <Header
