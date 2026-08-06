@@ -4,6 +4,7 @@ import * as React from "react";
 import { Sidebar } from "@/components/shared/sidebar";
 import { Header } from "@/components/shared/header";
 import { CommandPalette } from "@/components/shared/command-palette";
+import { MobileNav } from "@/components/shared/mobile-nav";
 
 export default function DashboardLayout({
   children,
@@ -20,10 +21,13 @@ export default function DashboardLayout({
       {/* Main Workspace Layout */}
       <div className="flex flex-col flex-1 md:pl-64">
         <Header onOpenCommandPalette={() => setCommandPaletteOpen(true)} />
-        <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-4 pb-20 md:pb-6 md:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           {children}
         </main>
       </div>
+
+      {/* Mobile Navigation Bar */}
+      <MobileNav />
 
       {/* Command Palette Modal */}
       <CommandPalette

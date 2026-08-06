@@ -15,6 +15,7 @@ import {
   Shield,
   Layers,
   Sparkles,
+  Settings,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -61,9 +62,9 @@ export const navigationItems = [
     icon: Award,
   },
   {
-    title: "Bảo mật & Passkey",
-    href: "/settings/security",
-    icon: Shield,
+    title: "Cài đặt",
+    href: "/settings",
+    icon: Settings,
   },
 ];
 
