@@ -76,10 +76,27 @@ export function TaskCard({ task, onOpenDetail, onToggleComplete }: TaskCardProps
           )}
 
           {task.tags && task.tags.length > 0 && (
-            <span className="flex items-center gap-0.5 truncate">
-              <TagIcon className="h-3 w-3 shrink-0" />
-              #{task.tags[0].name}
-            </span>
+            <div className="flex items-center gap-1 overflow-hidden max-w-[120px]">
+              {task.tags.slice(0, 2).map((t) => (
+                <span
+                  key={t.id}
+                  className="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-bold border truncate"
+                  style={{
+                    borderColor: `${t.color || "#64748b"}40`,
+                    backgroundColor: `${t.color || "#64748b"}15`,
+                    color: t.color || "#ffffff",
+                  }}
+                  title={t.name}
+                >
+                  {t.name}
+                </span>
+              ))}
+              {task.tags.length > 2 && (
+                <span className="text-[9px] text-muted-foreground font-semibold shrink-0">
+                  +{task.tags.length - 2}
+                </span>
+              )}
+            </div>
           )}
         </div>
 
